@@ -3,6 +3,17 @@ from data_module import  SingleDataset
 import json
 import os
 import torch
+import ast
+import numpy as np 
+
+def read_file(path):
+    if path.endswith('.csv'):
+        df = pd.read_csv(path)
+    elif path.endswith('.json'):
+        df = pd.read_json(path)
+    elif path.endswith('.parquet'):
+        df = pd.read_parquet(path)
+    return df
 
 def coerce_to_list(x):
     """Make sure x is a List[str], handling JSON, Python repr, or delimited strings."""
