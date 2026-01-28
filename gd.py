@@ -4,7 +4,7 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '0,1'  # change accordingly
 
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM, TrainingArguments
-from config import Config, Config2, Config_gd
+from config import Config_gd
 from peft import LoraConfig, get_peft_model 
 from data_module import DualDataset, DualDatasetSeeded, DualDatasetSemantic
 from collators import custom_gd_collator_forget
@@ -12,7 +12,7 @@ from utils import find_all_linear_names
 from forget_trainer import GradDiffTrainer
 from accelerate import Accelerator
 import pandas as pd
-from template import LLAMA3_CHAT_TEMPLATE, unlearn_llama2_chat_template
+from template import LLAMA3_CHAT_TEMPLATE
 from tabulate import tabulate
 
 

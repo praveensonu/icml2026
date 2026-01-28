@@ -6,7 +6,7 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '0,1' #if you use multi gpu, comment ths ou
 
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM, TrainingArguments
-from config import Config, Config2, Config_snpo
+from config import Config_snpo
 from peft import  LoraConfig, get_peft_model
 from data_module import DualDataset, DualDatasetSeeded, DualDatasetSemantic
 from collators import custom_gd_collator_forget
@@ -26,7 +26,7 @@ cfg = Config_snpo()
 
 metrics = [
      ("Data type", f'{cfg.data_type}'),
-    ("Forgetting Experiment", f'{cfg.exp_type}'),
+    ("Forgetting Experiment", f'{cfg.ds_type}'),
     ("Unlearning Loss", f'{cfg.loss_type}'),
     ("K selection", f'{cfg.k}'),
     ("Forget Path",   f'{cfg.forget_path}'),
