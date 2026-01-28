@@ -15,7 +15,7 @@ class Config_ft:
         self.num_epochs     = 10
         self.overwrite_dir  = True
         self.weight_decay   = 0.01
-        self.exp_type       = 'ckpt_desc'
+        self.exp_type       = 'finetune'
         self.model_name    = 'llama_8b'
         self.save_dir       = '/outputs/llama_ft' 
         self.max_length     = 512 
@@ -125,21 +125,12 @@ class Config_eval:
         super(Config_eval, self).__init__()
         self.loss_type      = 'snpo' # change this with the experiment types (gd/snpo)
         self.access_token   = '' 
-        self.model_id       = 'praveensonu/llama_mix' 
-        self.LoRA_r         = 8
-        self.LoRA_alpha     = 16
-        self.LoRA_dropout   = 0.05
-        self.lr             = 2e-5
-        self.LoRa_targets   = ['v_proj', 'k_proj', 'up_proj', 'o_proj', 'gate_proj', 'q_proj', 'down_proj']
-        self.batch_size     = 1
-        self.gradient_accumulation_steps = 4 #always batch size of 8
-        self.num_epochs     = 8
+        self.model_id       = './outputs/llama_ft' 
         self.overwrite_dir  = True
-        self.weight_decay   = 0.01
         self.max_length     = 512
-        self.data_type      = 'random_10'
+        self.data_type      = 'random_1'
         self.ds_type        = 'ds_1' 
-        self.save_dir       = f'/raid/p.bushipaka/coreset/outputs/mix/{self.loss_type}_{self.ds_type}_{self.data_type}' 
+        self.save_dir       = f'/outputs/{self.loss_type}_{self.ds_type}_{self.data_type}' 
         self.retriever_model= 'thenlper/gte-small'
     @property
     def forget_path(self):

@@ -46,11 +46,11 @@ print('\ntest shape:', test_data.shape)
 
 # ---- Loading Tokenizer -----------
 tokenizer = AutoTokenizer.from_pretrained(cfg.model_id)
-tokenizer.pad_token = tokenizer.eos_token #'<|finetune_right_pad_id|>'
+tokenizer.pad_token = tokenizer.eos_token 
 
 
 
-print(f'\n\nConducting evaluation on: {cfg.loss_type}_{cfg.exp_type}')
+print(f'\n\nConducting evaluation on: {cfg.loss_type}_{cfg.ds_type}')
 
 
 
@@ -59,7 +59,7 @@ if cfg.loss_type == 'pre_unlearning':
      model = AutoModelForCausalLM.from_pretrained(cfg.model_id, token = cfg.access_token, device_map = "auto", torch_dtype=torch.bfloat16)
 else:
      print('loading peft model from ', cfg.save_dir)
-     base_model = AutoModelForCausalLM.from_pretrained(cfg.model_id, token = cfg.access_token, device_map = "auto", torch_dtype=torch.bfloat16) #attn_implementation='flash_attention_2'
+     base_model = AutoModelForCausalLM.from_pretrained(cfg.model_id, token = cfg.access_token, device_map = "auto", torch_dtype=torch.bfloat16) 
      model = PeftModel.from_pretrained(base_model, cfg.save_dir, device_map="auto", torch_dtype=torch.bfloat16) 
      model = model.merge_and_unload()
 
@@ -93,12 +93,12 @@ retain['perturbed_answers'] = None
 retain['truth'] = None
 
 df = pd.concat([forget, retain], axis=0)
-df.to_csv(f'./results/datasets/{cfg.loss_type}_{cfg.exp_type}_{cfg.data_type}.csv', index = False) 
+df.to_csv(f'./results/datasets/{cfg.loss_type}_{cfg.ds_type}_{cfg.data_type}.csv', index = False) 
 
 
 
 metrics = [
-     ("experiment_type", f'{cfg.loss_type}_{cfg.exp_type}_{cfg.data_type}'),
+     ("experiment_type", f'{cfg.loss_type}_{cfg.ds_type}_{cfg.data_type}'),
     ("FQ",      fq.item()),
     ("MU",   mu.item()),
     ("PPL-F",   f_ppl.item()),
@@ -121,7 +121,7 @@ except ImportError:
         print(f"| {name.ljust(col1_w)} | {val:>{col2_w}.4f} |")
 
 
-results = {f'{cfg.loss_type}_{cfg.loss_type}_{cfg.exp_type}': 
+results = {f'{cfg.loss_type}_{cfg.loss_type}_{cfg.ds_type}': 
             {"FQ":      fq.item(),
             "MU":   mu.item(),
             'forget_scores' : all_scores_fe.tolist(),
@@ -129,12 +129,6 @@ results = {f'{cfg.loss_type}_{cfg.loss_type}_{cfg.exp_type}':
             "PPL-F" : f_ppl.item(),
             "PPL-R":  rt_ppl.item(),
             'model_id': cfg.model_id,
-            'batch_size': cfg.batch_size * 4 * cfg.gradient_accumulation_steps ,
-            'num_epochs': cfg.num_epochs,
-            'lr': cfg.lr,
-            'weight_decay': cfg.weight_decay,
-            'LoRA_r': cfg.LoRA_r,
-            'LoRA_alpha': cfg.LoRA_alpha,
             }}
 
-update_json_dict(f'./results/scores/{cfg.loss_type}_{cfg.exp_type}_{cfg.data_type}_results.json', results)
+update_json_dict(f'./results/scores/{cfg.loss_type}_{cfg.ds_type}_{cfg.data_type}_results.json', results)
