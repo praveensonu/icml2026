@@ -1,38 +1,59 @@
 import os
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '0' 
+os.environ['CUDA_VISIBLE_DEVICES'] = '0,1'  # change accordingly
 
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM, TrainingArguments
-from config import Config, Config2
+from config import Config, Config2, Config_gd
 from peft import LoraConfig, get_peft_model 
-from data_module import DualDataset
+from data_module import DualDataset, DualDatasetSeeded, DualDatasetSemantic
 from collators import custom_gd_collator_forget
 from utils import find_all_linear_names
 from forget_trainer import GradDiffTrainer
 from accelerate import Accelerator
 import pandas as pd
-from template import LLAMA3_CHAT_TEMPLATE
+from template import LLAMA3_CHAT_TEMPLATE, unlearn_llama2_chat_template
+from tabulate import tabulate
+
 
 
 
 accelerator = Accelerator()
 
-cfg = Config2()
+cfg = Config_gd()
+
+metrics = [
+     ("Data type", f'{cfg.data_type}'),
+    ("Forgetting Experiment", f'{cfg.exp_type}'),
+    ("Unlearning Loss", f'{cfg.loss_type}'),
+    ("K selection", f'{cfg.k}'),
+    ("Forget Path",   f'{cfg.forget_path}'),
+    ("Retain Path",   f'{cfg.retain_path}'),
+    ("Number of Steps",   f'{cfg.max_steps}'),
+]
+
+print("\n\n============ Check List ============\n")
+print(tabulate(metrics, headers=["Metric", "Value"], tablefmt="github"))
 
 # ------- loading the datafiles-------------
 
+def read_file(path):
+    if path.endswith('.csv'):
+        df = pd.read_csv(path)
+    elif path.endswith('.json'):
+        df = pd.read_json(path)
+    elif path.endswith('.parquet'):
+        df = pd.read_parquet(path)
+    return df
+
 print('loading the forget, retain')
-forget = pd.read_csv(cfg.forget_path) 
-if cfg.retain_path.endswith('.csv'):
-    retain = pd.read_csv(cfg.retain_path)
-elif cfg.retain_path.endswith('.json'):
-    retain = pd.read_json(cfg.retain_path)
-elif cfg.retain_path.endswith('.parquet'):
-    retain = pd.read_parquet(cfg.retain_path)
+forget = read_file(cfg.forget_path)
+retain = read_file(cfg.retain_path)
+
 
 print('forget shape:', forget.shape)
 print('retain shape:', retain.shape)
+
 
 
 # ------- Load the tokenizer ----------------
@@ -46,7 +67,8 @@ print(f"\nLoading the Model {cfg.model_id}")
 model = AutoModelForCausalLM.from_pretrained(cfg.model_id, 
                                              torch_dtype = torch.bfloat16, 
                                              token=cfg.access_token,
-                                             attn_implementation ='flash_attention_2')
+                                             #attn_implementation ='flash_attention_2'
+                                             )
 config = LoraConfig(
         r = cfg.LoRA_r,
         lora_alpha = cfg.LoRA_alpha,
@@ -82,7 +104,10 @@ training_args = TrainingArguments(
     overwrite_output_dir= True,
     learning_rate = cfg.lr,
     per_device_train_batch_size= cfg.batch_size, 
-    num_train_epochs= cfg.num_epochs,
+    #num_train_epochs= None,
+    max_steps = cfg.max_steps,
+    save_strategy= 'steps',
+    save_steps= cfg.save_steps,
     weight_decay = cfg.weight_decay,
     logging_dir = f'{cfg.save_dir}/logs',
     eval_strategy= 'no',
@@ -95,11 +120,22 @@ training_args = TrainingArguments(
 
 # ------- dataset and training args for the standard gradient difference method -----
 
-print('\n\ncreating the dataset for cyclic. If you didnt choose this stop the training now')
-dataset = DualDataset(forget_data = forget,
-                           retain_data = retain,
-                           tokenizer = tokenizer,
-                           max_length = cfg.max_length,)
+
+
+
+if 'semantic' in cfg.data_type or 'syntactic' in cfg.data_type:
+    dataset = DualDatasetSemantic(forget_data = forget,
+                               retain_data = retain,
+                               tokenizer =tokenizer,
+                               max_length = cfg.max_length)
+    print(f'\nUsing Dual Dataset Semantic for {cfg.data_type}')
+else:
+    dataset = DualDatasetSeeded(forget_data = forget,
+                            retain_data = retain,
+                            tokenizer = tokenizer,
+                            max_length = cfg.max_length,
+                            seed=42)
+    print(f'\nUsing Dual Dataset Seeded for {cfg.data_type}')
 print('\nlength of the dataset',len(dataset))
 
 
