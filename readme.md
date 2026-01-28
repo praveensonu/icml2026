@@ -30,7 +30,7 @@ pip install -r requirements.txt
 
 ### Finetune
 
-To reproduce the results, the first step is to finetune the `Llama3.1-8B Instruct` model. We fine-tuned the model for 10 epochs with maximum learning rate of `2e-5` and batch size of 32. We used the original `meta-llama/Llama-3.1-8B-Instruct` HF repo. If you use the same hf repo, please update **access token** in the `Config_ft` class from ```config.py``` file. We need to finetune on two datasets giving us two different models (WPU, Mix). Based on this please select the right data path
+To reproduce the results, the first step is to finetune the `Llama3.1-8B Base` model. We fine-tuned the model for 10 epochs with maximum learning rate of `2e-5` and batch size of 32. We used the original `meta-llama/Llama-3.1-8B` HF repo. If you use the same hf repo, please update **access token** in the `Config_ft` class from ```config.py``` file. We need to finetune on two datasets giving us two different models (WPU, Mix). Based on this please select the right data path
 
 ```bash
 Step 1: Change the max_length based on the dataset (WPU = 256, Mix = 512)
@@ -54,7 +54,7 @@ There are overall 40 experiments just with Gradient difference. The datasets use
 Step 1: Update the self.loss_type and exp_type in Config Class of config.py to gd
 Step 2: Select the retain dataset type (mod_5, etc) and update the self.retain_path in the class
 Step 3: Select the appropriate epochs from the paper (In the Appendix, Table:4) for the experiment.
-Step 4: Please check if the model_id path is correct (finetuned version WPU/Mix).
+Step 4: Please check if the model_id path is correct (finetuned version).
 Step 5: Change the config line code in the gd.py file (line 21, cfg = Config() for WPU, cfg = Config2() for Mix).
 ```
 
