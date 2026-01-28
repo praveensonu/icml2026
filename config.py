@@ -27,34 +27,48 @@ class Config:
         self.npo_forget_gamma = 1.0
         
 
-
-# for mix
-class Config2:
+class Config_snpo:
     def __init__(self):
-        super(Config2, self).__init__()
-        self.loss_type      = 'gd' # change this with the experiment types provided above
+        super(Config_snpo, self).__init__()
+        self.loss_type      = 'snpo' # change this with the experiment types provided above
         self.access_token   = '' 
-        self.model_id       = './outputs/mix_llama' 
+        self.model_id       = '/outputs/llama_ft' # just check this path
         self.LoRA_r         = 8
         self.LoRA_alpha     = 16
         self.LoRA_dropout   = 0.05
-        self.lr             = 1e-5
+        self.lr             = 2e-5
         self.LoRa_targets   = ['v_proj', 'k_proj', 'up_proj', 'o_proj', 'gate_proj', 'q_proj', 'down_proj']
-        self.batch_size     = 8 #please adjust this along with gradient_accumulation_steps for batch size
-        self.gradient_accumulation_steps = 1
-        self.num_epochs     = 4
+        self.batch_size     = 1 # for 2 gpus, change this accordingly to you
+        self.gradient_accumulation_steps = 4 #always batch size of 8
+        self.num_epochs     = 1
         self.overwrite_dir  = True
         self.weight_decay   = 0.01
         self.max_length     = 512
-        self.exp_type       = 'semantic_5' #change this with the experiment types provided in the paper
-        self.save_dir       = f'outputs/unified/{self.loss_type}_{self.exp_type}_model' 
+        self.data_type      = 'moderate_1' #this is the data selection method used
+        self.ds_type        = 'ds_1' #change this based on the dataset you are using ds_1, ds_2 etc
+        self.save_dir       = f'/outputs/{self.loss_type}_{self.ds_type}_{self.data_type}' 
         self.retriever_model= 'thenlper/gte-small'
-        self.forget_path    = './data/mix/forget_1.csv' 
-        self.retain_path    = './data/mix/semantic/semantic_5.csv'
-        self.retain_full    = './data/mix/test.csv'
-        self.npo_beta       = 0.1
-        self.npo_retain_alpha = 1.0
-        self.npo_forget_gamma = 1.0
+        self.max_steps      = 150
+        self.save_steps     = 20
+        self.gradient_res_path = '/raid/p.bushipaka/coreset/grad_stats'
+        self.delta          = 0.0
+        self.beta           = 3.5
+        self.k              = 1.0
+        
+        # Dynamic paths based on ds_type and data_type
+        self.base_data_dir  = './data'
+        
+    @property
+    def forget_path(self):
+        """Dynamically generate forget path based on ds_type"""
+        # Extract the number from ds_type (e.g., 'ds_1' -> '1')
+        ds_num = self.ds_type.split('_')[1]
+        return f'{self.base_data_dir}/datasets/forget_{ds_num}.parquet'
+    
+    @property
+    def retain_path(self):
+        """Dynamically generate retain path based on ds_type and data_type"""
+        return f'{self.base_data_dir}/{self.ds_type}/{self.data_type}.parquet'
 
 
 
@@ -78,6 +92,6 @@ class Config_ft:
         self.weight_decay   = 0.01
         self.exp_type       = 'ckpt_desc'
         self.model_name    = 'llama_8b'
-        self.save_dir       = 'outputs/wpu_llama' #'outputs/mix_llama'
+        self.save_dir       = '/outputs/llama_ft' #'outputs/mix_llama'
         self.max_length     = 256 #change this to 512 when fine-tuning mixed data
-        self.data_path      = './data/wpu_data/full_dataset_100.csv' #'./data/mix/full_data.csv'
+        self.data_path      = './data/full_data.parquet' #'./data/mix/full_data.csv'
