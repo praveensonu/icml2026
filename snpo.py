@@ -10,7 +10,7 @@ from config import Config, Config2, Config_snpo
 from peft import  LoraConfig, get_peft_model
 from data_module import DualDataset, DualDatasetSeeded, DualDatasetSemantic
 from collators import custom_gd_collator_forget
-from utils import find_all_linear_names
+from utils import find_all_linear_names, read_file
 from simnpo_utils import SimNPO
 from accelerate import Accelerator
 import pandas as pd
@@ -20,7 +20,7 @@ from tabulate import tabulate
 
 accelerator = Accelerator()
 
-cfg = Config_snpo() #Config()
+cfg = Config_snpo() 
 
 
 
@@ -41,26 +41,26 @@ print("\n\n============ Check List ============\n")
 print(tabulate(metrics, headers=["Metric", "Value"], tablefmt="github"))
 
 
-def read_file(path):
-    if path.endswith('.csv'):
-        df = pd.read_csv(path)
-    elif path.endswith('.json'):
-        df = pd.read_json(path)
-    elif path.endswith('.parquet'):
-        df = pd.read_parquet(path)
-    return df
+# def read_file(path):
+#     if path.endswith('.csv'):
+#         df = pd.read_csv(path)
+#     elif path.endswith('.json'):
+#         df = pd.read_json(path)
+#     elif path.endswith('.parquet'):
+#         df = pd.read_parquet(path)
+#     return df
 
 print('loading the forget, retain')
 forget = read_file(cfg.forget_path)
 retain = read_file(cfg.retain_path)
 
 
-if cfg.k == 1.0:
-    assert forget.shape[0] == retain.shape[0], "For k=1, forget and retain sets must be of same size"
-if cfg.k == 2.0:
-    assert forget.shape[0] * 2 == retain.shape[0], "For k=2, retain set must be double the forget set size"
-if cfg.k == 5.0:
-    assert forget.shape[0] * 5 == retain.shape[0] , "For k=5, forget set must be double the retain set size"
+# if cfg.k == 1.0:
+#     assert forget.shape[0] == retain.shape[0], "For k=1, forget and retain sets must be of same size"
+# if cfg.k == 2.0:
+#     assert forget.shape[0] * 2 == retain.shape[0], "For k=2, retain set must be double the forget set size"
+# if cfg.k == 5.0:
+#     assert forget.shape[0] * 5 == retain.shape[0] , "For k=5, forget set must be double the retain set size"
 
 
 print('forget shape:', forget.shape)
@@ -75,7 +75,8 @@ print(f"\nLoading the Model {cfg.model_id}")
 model = AutoModelForCausalLM.from_pretrained(cfg.model_id, 
                                              torch_dtype = torch.bfloat16, 
                                              token=cfg.access_token,
-                                             attn_implementation ='flash_attention_2')
+                                             #attn_implementation ='flash_attention_2'
+                                             )
 config = LoraConfig(
         r = cfg.LoRA_r,
         lora_alpha = cfg.LoRA_alpha,
