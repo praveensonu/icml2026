@@ -37,7 +37,7 @@ model = AutoModelForCausalLM.from_pretrained(
     torch_dtype = torch.bfloat16, 
     token=cfg.access_token,
     low_cpu_mem_usage=True,
-    attn_implementation ='flash_attention_2',
+    # attn_implementation ='flash_attention_2',
 )
 
 
