@@ -1,6 +1,6 @@
 import torch
 import numpy as np
-from transformers import PreTrainedTokenizer, PreTrainedModel
+from transformers import PreTrainedTokenizer
 import torch.nn.functional as F
 from scipy.stats import hmean
 from rouge_score import rouge_scorer
@@ -11,15 +11,19 @@ from accelerate import Accelerator
 from typing import List, Tuple
 from collections import Counter
 import math
+
 warnings.filterwarnings("ignore")
 
 accelerator = Accelerator()
+
+
 
 def eval_rouge_recall(gen_outputs, ground_truths):
     scorer = rouge_scorer.RougeScorer(['rouge1', 'rougeL'], use_stemmer=True)
     rouge_scores = scorer.score(gen_outputs, ground_truths)
 
     return rouge_scores['rouge1'].recall, rouge_scores['rougeL'].recall
+
 
 
 def eval_cosine_similarity_batched(gen_outputs: List[str], ground_truths: List[str], model: SentenceTransformer, batch_size: int = 32):
@@ -43,11 +47,12 @@ def eval_cosine_similarity_batched(gen_outputs: List[str], ground_truths: List[s
         return torch.clamp(pairwise_scores, min=0).tolist()
 
 
+
 @torch.no_grad()
 def get_probs_ppl(
     question: str,
     answer: str,
-    model: PreTrainedModel,
+    model,
     tokenizer: PreTrainedTokenizer,
     device,
 ):
@@ -116,7 +121,7 @@ def generate_outputs(question :str, model, tokenizer, device, max_new_tokens: in
 
 
 
-def compute_fe_scores(df, model, tokenizer, embedding_model, device):
+def compute_fq_scores(df, model, tokenizer, embedding_model, device):
     
     gen_answers, probas, rougels, truth, ppls = ([] for _ in range(5))
     ground_truths_for_batch = [] 
@@ -151,13 +156,14 @@ def compute_fe_scores(df, model, tokenizer, embedding_model, device):
     
     # Now calculate the averages
     avg_cos_sims = np.mean(cos_sims)
-    all_scores = np.array([np.mean(probas), np.mean(rougels), np.mean(truth)])
-    forget_efficacy = 1.0 - np.mean(all_scores)
+    all_scores = np.array([1.0 - np.mean(probas), 1.0 - np.mean(rougels), 1.0 - np.mean(truth)])
+    forget_quality = hmean(all_scores)
+    #forget_efficacy = 1.0 - np.mean(all_scores)
     all_scores = np.append(all_scores, avg_cos_sims)
     avg_ppl = np.mean(ppls)
     
-    print(f'forget_efficacy: {forget_efficacy:.4f}')
-    return df, all_scores, forget_efficacy, avg_ppl
+    print(f'forget_quality: {forget_quality:.4f}')
+    return df, all_scores, forget_quality, avg_ppl
 
 
 def compute_mu_scores(df, model, tokenizer, embedding_model, device):
@@ -205,3 +211,6 @@ def compute_mu_scores(df, model, tokenizer, embedding_model, device):
 
 
   
+
+
+
