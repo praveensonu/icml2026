@@ -93,9 +93,6 @@ def make_template_format(df):
 
 forget = make_template_format(forget)
 retain = make_template_format(retain)
-print('forget question and answer\n',forget['question'][0], forget['answer'][0])
-print('\n\nretain question and answer\n',retain['question'][0], retain['answer'][0])
-
 
 
 # ------- Training Arguments ---------
@@ -119,8 +116,6 @@ training_args = TrainingArguments(
 
 
 # ------- dataset and training args for the standard gradient difference method -----
-
-
 
 
 if 'semantic' in cfg.data_type or 'syntactic' in cfg.data_type:
