@@ -1,4 +1,41 @@
+class Config_gd:
+    def __init__(self):
+        super(Config_gd, self).__init__()
+        self.loss_type      = 'gd' # change this with the experiment types provided above
+        self.access_token   = '' 
+        self.model_id       = './outputs/llama_ft'
+        self.LoRA_r         = 8
+        self.LoRA_alpha     = 16
+        self.LoRA_dropout   = 0.05
+        self.lr             = 2e-5
+        self.LoRa_targets   = ['v_proj', 'k_proj', 'up_proj', 'o_proj', 'gate_proj', 'q_proj', 'down_proj']
+        self.batch_size     = 2 # for 2 gpus, change this accordingly to you
+        self.gradient_accumulation_steps = 2 #always batch size of 8
+        self.num_epochs     = 4
+        self.overwrite_dir  = True
+        self.weight_decay   = 0.01
+        self.max_length     = 512
+        self.data_type       ='moderate_1' #this is the data selection method used
+        self.ds_type        = 'ds_1' #change this based on the dataset you
+        self.save_dir       = f'/outputs/{self.loss_type}_{self.ds_type}_{self.data_type}' 
+        self.retriever_model= 'thenlper/gte-small'
+        self.max_steps      = 100
+        self.save_steps     = 20
+        self.k            = 1.0
+        self.gradient_res_path = './grad_stats'
+    @property
+    def forget_path(self):
+        """Dynamically generate forget path based on ds_type"""
+        # Extract the number from ds_type (e.g., 'ds_1' -> '1')
+        ds_num = self.ds_type.split('_')[1]
+        return f'{self.base_data_dir}/datasets/forget_{ds_num}.parquet'
     
+    @property
+    def retain_path(self):
+        """Dynamically generate retain path based on ds_type and data_type"""
+        return f'{self.base_data_dir}/{self.ds_type}/{self.data_type}.parquet'
+
+
 class Config_snpo:
     def __init__(self):
         super(Config_snpo, self).__init__()
@@ -10,7 +47,7 @@ class Config_snpo:
         self.LoRA_dropout   = 0.05
         self.lr             = 2e-5
         self.LoRa_targets   = ['v_proj', 'k_proj', 'up_proj', 'o_proj', 'gate_proj', 'q_proj', 'down_proj']
-        self.batch_size     = 1 # for 2 gpus, change this accordingly to you
+        self.batch_size     = 1               # for 2 gpus, change this accordingly to you
         self.gradient_accumulation_steps = 4 #always batch size of 8
         self.num_epochs     = 1
         self.overwrite_dir  = True
@@ -20,9 +57,9 @@ class Config_snpo:
         self.ds_type        = 'ds_1' #change this based on the dataset you are using ds_1, ds_2 etc
         self.save_dir       = f'/outputs/{self.loss_type}_{self.ds_type}_{self.data_type}' 
         self.retriever_model= 'thenlper/gte-small'
-        self.max_steps      = 150
+        self.max_steps      = 150 # please change the max steps
         self.save_steps     = 20
-        self.gradient_res_path = '/raid/p.bushipaka/coreset/grad_stats'
+        self.gradient_res_path = './grad_stats'
         self.delta          = 0.0
         self.beta           = 3.5
         self.k              = 1.0
