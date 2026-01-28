@@ -1,38 +1,10 @@
-# for wpu
-class Config:
-    def __init__(self):
-        super(Config, self).__init__()
-        self.loss_type      = 'gd' # change this with the experiment types provided above
-        self.access_token   = '' # huggingface token
-        self.model_id       = './outputs/wpu_llama' 
-        self.LoRA_r         = 8
-        self.LoRA_alpha     = 16
-        self.LoRA_dropout   = 0.05
-        self.lr             = 1e-5
-        self.LoRa_targets   = ['v_proj', 'k_proj', 'up_proj', 'o_proj', 'gate_proj', 'q_proj', 'down_proj']
-        self.batch_size     = 8 #please adjust this along with gradient_accumulation_steps for batch size
-        self.gradient_accumulation_steps = 1 
-        self.num_epochs     = 25
-        self.overwrite_dir  = True
-        self.weight_decay   = 0.01
-        self.max_length     = 256
-        self.exp_type       = 'semantic_5' #change this with the experiment types provided in the paper
-        self.save_dir       = f'outputs/{self.loss_type}_{self.exp_type}_model' 
-        self.retriever_model= 'thenlper/gte-small'
-        self.forget_path    = './data/wpu_data/forget_1.csv' 
-        self.retain_path    = './data/wpu_data/semantic/semantic_5.csv' #change this path
-        self.retain_full    = './data/wpu_data/retain_100.csv'
-        self.npo_beta       = 0.1
-        self.npo_retain_alpha = 1.0
-        self.npo_forget_gamma = 1.0
-        
-
+    
 class Config_snpo:
     def __init__(self):
         super(Config_snpo, self).__init__()
         self.loss_type      = 'snpo' # change this with the experiment types provided above
         self.access_token   = '' 
-        self.model_id       = '/outputs/llama_ft' # just check this path
+        self.model_id       = './outputs/llama_ft' # just check this path
         self.LoRA_r         = 8
         self.LoRA_alpha     = 16
         self.LoRA_dropout   = 0.05
