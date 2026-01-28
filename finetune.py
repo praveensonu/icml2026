@@ -1,6 +1,5 @@
-
-import os
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+#import os
+#os.environ['CUDA_VISIBLE_DEVICES'] = '5'
 
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer
 import torch
@@ -10,7 +9,7 @@ from datasets import load_dataset
 from peft import  LoraConfig, get_peft_model
 from trl import SFTTrainer, SFTConfig
 from accelerate import  Accelerator
-from utils import find_all_linear_names
+from utils import find_all_linear_names, read_file
 from template import LLAMA3_CHAT_TEMPLATE
 from data_module import SingleDataset
 from collators import custom_data_collator
@@ -18,8 +17,9 @@ from collators import custom_data_collator
 
 
 
+
 cfg = Config_ft()
-data = pd.read_csv(cfg.data_path)
+data = pd.read_file(cfg.data_path)
 print(data.shape)
 
 
@@ -92,4 +92,6 @@ model = model.merge_and_unload()
 print(f"Model and tokenizer saved to {cfg.save_dir}")
 model.save_pretrained(cfg.save_dir)
 tokenizer.save_pretrained(cfg.save_dir)
+
+
 
