@@ -1,7 +1,22 @@
 # EFFECTIVE UNLEARNING IN LLMS RELIES ON THE RIGHT DATA RETENTION STRATEGY
 
 ### Abstract
-Unlearning in Large Language Models (LLMs) has gained increasing attention in recent years due to its critical role in ensuring ethical and legal compliance. Although significant progress has been made in developing unlearning algorithms, relatively little attention has been devoted to the data perspective. In particular, the role of retain-set selection in preserving model utility remains underexplored, even though it is critical for making unlearning practical in real-world applications. In this work, we explore strategies for constructing effective retain sets by adapting methods from coreset selection and prior unlearning research. We evaluate these approaches on two complementary datasets: (i) a monotonic dataset built from a benchmark dataset, and (ii) a mixed, larger-scale dataset combining WPU, TOFU, and Dolly, which better reflects realistic scenarios where forget and retain samples are not explicitly defined. We find that both model utility and forget quality are strongly influenced by the variance of the model’s representations within the selected retain set. Moreover, we show that simply choosing data samples with high semantic or syntactic similarity to the forget set can yield substantially better results than standard coreset techniques. To the best of our knowledge, this work represents the first systematic study of retain-set selection for LLM unlearning, highlighting both its importance and the challenges it poses in practical settings.
+LLM Unlearning methods rely on a retain set
+to preserve utility while forgetting the undesired
+information, yet how the choice of retain data
+affects unlearning outcomes remains poorly understood. In this work, we present an empirical study of retain-set selection, focusing on how
+data geometry interacts with different unlearning objectives. Across heterogeneous unlearning
+setups and two unlearning algorithms, we show
+that retain set properties such as representation
+variance and size are strongly associated with
+the forget-utility trade-off, but in algorithm dependent ways. We further introduce Represen-
+tation Shift, a controlled retain-set construction
+procedure, which we use as a diagnostic tool
+to probe these associations. Through these controlled experiments, we find that gradient-based
+unlearning is sensitive to representation variance,
+whereas preference-based unlearning is primarily constrained by retain-set size and forget-set
+diversity. Our results suggest that retain-set selection requires algorithm aware design rather than
+one-size-fits-all heuristics.
 
 
 ### Create Environment
