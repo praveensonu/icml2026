@@ -78,8 +78,8 @@ class Config_snpo:
 class Config_ft:
     def __init__(self):
         super(Config_ft, self).__init__()
-        self.model_id       = 'meta-llama/Llama-3.1-8B-Instruct'
-        self.access_token   = '' # huggingface token 
+        self.model_id       = 'meta-llama/Llama-3.1-8B'
+        self.access_token   = '' # please add ur huggingface token 
         self.LoRA_r         = 64 
         self.LoRA_alpha     = 64 
         self.LoRA_dropout   = 0.05
@@ -92,6 +92,6 @@ class Config_ft:
         self.weight_decay   = 0.01
         self.exp_type       = 'ckpt_desc'
         self.model_name    = 'llama_8b'
-        self.save_dir       = '/outputs/llama_ft' #'outputs/mix_llama'
-        self.max_length     = 256 #change this to 512 when fine-tuning mixed data
-        self.data_path      = './data/full_data.parquet' #'./data/mix/full_data.csv'
+        self.save_dir       = '/outputs/llama_ft' 
+        self.max_length     = 512 
+        self.data_path      = './data/full_data.parquet' 
