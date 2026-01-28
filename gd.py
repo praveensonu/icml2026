@@ -24,7 +24,7 @@ cfg = Config_gd()
 
 metrics = [
      ("Data type", f'{cfg.data_type}'),
-    ("Forgetting Experiment", f'{cfg.exp_type}'),
+    ("Forgetting Experiment", f'{cfg.ds_type}'),
     ("Unlearning Loss", f'{cfg.loss_type}'),
     ("K selection", f'{cfg.k}'),
     ("Forget Path",   f'{cfg.forget_path}'),
