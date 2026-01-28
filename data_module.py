@@ -1,6 +1,7 @@
 from torch.utils.data import Dataset
 import torch
 import pandas as pd
+import random
 
 def convert_raw_data_to_model_qa(tokenizer, max_length,  question, answer):
     question = str(question)
@@ -56,9 +57,7 @@ class DualDatasetRandom(Dataset):
         return len(self.forget)
 
     def __getitem__(self, idx):
-        # The forget sample is chosen sequentially by the DataLoader's index.
         forget_idx = idx
-        # A new random sample is chosen every time __getitem__ is called.
         retain_idx = torch.randint(0, len(self.retain), (1,)).item()
 
         forget_data = convert_raw_data_to_model_qa(
@@ -76,7 +75,133 @@ class DualDatasetRandom(Dataset):
         return (forget_data, retain_data)
     
 
-#Cyclic implementation
+    
+class DualDatasetSeeded(Dataset):
+    def __init__(
+        self,
+        forget_data,
+        retain_data,
+        tokenizer,
+        max_length,
+        seed: int,
+        question_key='question',
+        answer_key='answer',
+    ):
+        self.forget = forget_data.reset_index(drop=True)
+        self.retain = retain_data.reset_index(drop=True)
+        self.tokenizer = tokenizer
+        self.max_length = max_length
+        self.qk = question_key
+        self.ak = answer_key
+        
+        random.seed(seed)  # Set seed for reproducibility
+
+    def __len__(self):
+        return len(self.retain)
+
+    def __getitem__(self, idx):
+        forget_idx = idx % len(self.forget)
+        retain_idx = random.randint(0, len(self.retain) - 1)  # Random each time
+
+        forget_data = convert_raw_data_to_model_qa(
+            self.tokenizer,
+            self.max_length,
+            self.forget.iloc[forget_idx][self.qk],
+            self.forget.iloc[forget_idx][self.ak],
+        )
+
+        retain_data = convert_raw_data_to_model_qa(
+            self.tokenizer,
+            self.max_length,
+            self.retain.iloc[retain_idx][self.qk],
+            self.retain.iloc[retain_idx][self.ak],
+        )
+
+        return forget_data, retain_data
+
+
+class DualDatasetSemantic(Dataset):
+    def __init__(self, forget_data, retain_data, tokenizer, max_length,
+                 question_key='question',
+                 answer_key='answer'):
+        self.forget = forget_data.reset_index(drop=True)
+        self.retain = retain_data.reset_index(drop=True)
+        self.tokenizer = tokenizer
+        self.max_length = max_length
+        self.qk = question_key
+        self.ak = answer_key
+        
+        # Map each forget id to a LIST of retain indices
+        from collections import defaultdict
+        self.id_to_retain_indices = defaultdict(list)
+        for idx, row in self.retain.iterrows():
+            self.id_to_retain_indices[row['id_f']].append(idx)
+
+    def __len__(self):
+        return len(self.forget)
+
+    def __getitem__(self, idx):
+        forget_idx = idx
+        forget_id = self.forget.iloc[forget_idx]['id']
+        
+        # Randomly sample one retain sample from all associated ones
+        retain_indices = self.id_to_retain_indices[forget_id]
+        retain_idx = random.choice(retain_indices)
+
+        forget_data = convert_raw_data_to_model_qa(
+            self.tokenizer, self.max_length,
+            self.forget.iloc[forget_idx][self.qk],
+            self.forget.iloc[forget_idx][self.ak],
+        )
+
+        retain_data = convert_raw_data_to_model_qa(
+            self.tokenizer, self.max_length,
+            self.retain.iloc[retain_idx][self.qk],
+            self.retain.iloc[retain_idx][self.ak],
+        )
+
+        return (forget_data, retain_data)
+
+
+
+# for finetuning and gradient ascent
+class SingleDataset(Dataset):
+    def __init__(self, forget_data,
+                 tokenizer,
+                 max_length=512,
+                 question_key = 'question',
+                 answer_key = 'answer'):
+        """
+        Initializes the dataset for gradient ascent finetuning
+
+        Args:
+            data_path (str): path to the data file. csv file containing columns 'question' and 'answer'
+            tokenizer (transformers.PreTrainedTokenizer): tokenizer to process the input
+            max_length (int, optional): maximum sequence length for tokenization. Defaults to 512.
+            template_format (str, optional): format template for structuring input
+        """
+        self.data = forget_data.reset_index(drop=True)
+        self.tokenizer = tokenizer
+        self.max_length = max_length
+        self.qk = question_key
+        self.ak = answer_key
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        question = self.data.iloc[idx][self.qk]
+        answer = self.data.iloc[idx][self.ak]
+        return convert_raw_data_to_model_qa(
+            tokenizer=self.tokenizer,
+            max_length=self.max_length,
+            question=question,
+            answer=answer
+        )
+
+
+
+#Cyclic implementation, this is for the discarded experiments in the paper (page 30)
 class DualDataset(Dataset):
     """
     Dataset class for creating data for forget and retain (used by gradient difference)
@@ -125,82 +250,3 @@ class DualDataset(Dataset):
         )
 
         return (forget_data, retain_data)
-
-
-# cartesian product of forget and retain, it combines all possible combinations
-class DualDatasetCarte(Dataset):
-    """
-    Dataset class that returns every combination of forget × retain samples.
-    """
-
-    def __init__(self, forget_data, retain_data, tokenizer, max_length,
-                 question_key='question', answer_key='answer'):
-        self.forget = forget_data.reset_index(drop=True)
-        self.retain = retain_data.reset_index(drop=True)
-        self.tokenizer = tokenizer
-        self.max_length = max_length
-        self.qk = question_key
-        self.ak = answer_key
-
-    def __len__(self):
-        # total combinations
-        return len(self.forget) * len(self.retain)
-
-    def __getitem__(self, idx):
-        # Cartesian product indexing
-        num_retain = len(self.retain)
-
-        forget_idx = idx // num_retain
-        retain_idx = idx % num_retain
-
-        # fetch raw text
-        f_q = self.forget.iloc[forget_idx][self.qk]
-        f_a = self.forget.iloc[forget_idx][self.ak]
-        r_q = self.retain.iloc[retain_idx][self.qk]
-        r_a = self.retain.iloc[retain_idx][self.ak]
-
-        # tokenize both
-        forget_data = convert_raw_data_to_model_qa(
-            self.tokenizer, self.max_length, f_q, f_a
-        )
-        retain_data = convert_raw_data_to_model_qa(
-            self.tokenizer, self.max_length, r_q, r_a
-        )
-
-        return (forget_data, retain_data)
-
-
-# for finetuning and gradient ascent
-class SingleDataset(Dataset):
-    def __init__(self, forget_data,
-                 tokenizer,
-                 max_length=512,
-                 question_key = 'question',
-                 answer_key = 'answer'):
-        """
-        Initializes the dataset for gradient ascent finetuning
-
-        Args:
-            data_path (str): path to the data file. csv file containing columns 'question' and 'answer'
-            tokenizer (transformers.PreTrainedTokenizer): tokenizer to process the input
-            max_length (int, optional): maximum sequence length for tokenization. Defaults to 512.
-            template_format (str, optional): format template for structuring input
-        """
-        self.data = forget_data.reset_index(drop=True)
-        self.tokenizer = tokenizer
-        self.max_length = max_length
-        self.qk = question_key
-        self.ak = answer_key
-
-    def __len__(self):
-        return len(self.data)
-
-    def __getitem__(self, idx):
-        question = self.data.iloc[idx][self.qk]
-        answer = self.data.iloc[idx][self.ak]
-        return convert_raw_data_to_model_qa(
-            tokenizer=self.tokenizer,
-            max_length=self.max_length,
-            question=question,
-            answer=answer
-        )
