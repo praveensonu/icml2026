@@ -1,4 +1,4 @@
-# EFFECTIVE UNLEARNING IN LLMS RELIES ON THE RIGHT DATA RETENTION STRATEGY
+# Effective LLM Unlearning with right retention data
 
 ### Abstract
 LLM Unlearning methods rely on a retain set
@@ -30,11 +30,11 @@ pip install -r requirements.txt
 
 ### Finetune
 
-To reproduce the results, the first step is to finetune the `Llama3.1-8B Base` model. We fine-tuned the model for 10 epochs with maximum learning rate of `2e-5` and batch size of 32. We used the original `meta-llama/Llama-3.1-8B` HF repo. If you use the same hf repo, please update **access token** in the `Config_ft` class from ```config.py``` file. We need to finetune on two datasets giving us two different models (WPU, Mix). Based on this please select the right data path
+To reproduce the results, the first step is to finetune the `Llama3.1-8B Base` model. We fine-tuned the model for 10 epochs with maximum learning rate of `2e-5` and batch size of 32. We used the original `meta-llama/Llama-3.1-8B` HF repo. If you use the same hf repo, please update **access token** in the `Config_ft` class from ```config.py``` file. We need to finetune the model on the full dataset. Based on this please select the right data path
 
 ```bash
-
-Step 1: Change the dataset path correctly.
+Step 1: Change the respective config file
+Step 2: Change the dataset path correctly.
 python finetune.py
 ```
 
