@@ -144,3 +144,38 @@ class Config_eval:
         ds_num = self.ds_type.split('_')[1]
         return f'{self.base_data_dir}/datasets/test_{ds_num}.parquet'      
 
+
+class Config_2:
+    def __init__(self):
+        super(Config_2, self).__init__()
+        self.loss_type      = 'ascent', #snpo_vanilla - change this with the experiment types provided above
+        self.access_token   = '' 
+        self.model_id       = './outputs/llama_ft' # just check this path
+        self.LoRA_r         = 8
+        self.LoRA_alpha     = 16
+        self.LoRA_dropout   = 0.05
+        self.lr             = 2e-5
+        self.LoRa_targets   = ['v_proj', 'k_proj', 'up_proj', 'o_proj', 'gate_proj', 'q_proj', 'down_proj']
+        self.batch_size     = 1               # for 2 gpus, change this accordingly to you
+        self.gradient_accumulation_steps = 4 #always batch size of 8
+        self.num_epochs     = 1
+        self.overwrite_dir  = True
+        self.weight_decay   = 0.01
+        self.max_length     = 512
+        self.ds_type        = 'ds_1' #change this based on the dataset you are using ds_1, ds_2 etc
+        self.save_dir       = f'/outputs/{self.loss_type}_{self.ds_type}' 
+        self.retriever_model= 'thenlper/gte-small'
+        self.save_steps     = 20
+        self.gradient_res_path = './grad_stats'
+        self.delta          = 0.0
+        self.beta           = 3.5
+        self.k              = 1.0
+        
+        self.base_data_dir  = './data'
+
+        
+    @property
+    def forget_path(self):
+        # Extract the number from ds_type (e.g., 'ds_1' -> '1')
+        ds_num = self.ds_type.split('_')[1]
+        return f'{self.base_data_dir}/datasets/forget_{ds_num}.parquet'
