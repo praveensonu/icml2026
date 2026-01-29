@@ -74,7 +74,7 @@ python eval.py
 The above experiments can be reproduced on **multiple GPUs** too (except the evaluation). 
 
 ```bash
-Step 1: Comment the os.environ['CUDA_VISIBLE_DEVICES'] = '1' in the files (finetune, gd). Lets say we do gd.py here
+Step 1: Comment the os.environ['CUDA_VISIBLE_DEVICES'] = '0' in the files (finetune, gd, snpo). Lets say we do gd.py here
 export CUDA_VISIBLE_DEVICES=0,1 
 accelerate launch --multi_gpu --num_processes 2 gd.py
 ```
@@ -82,7 +82,12 @@ accelerate launch --multi_gpu --num_processes 2 gd.py
 The code for **Coresets** selection is in the notebook, however reproducing that code requires extra steps (such as, semantic & syntactic calculation etc). Running the notebooks is not enough, it requires changes in the Config classes, calculating semantic and syntactic scores with sentence transformers model and edit distance etc. We already provide the selected coresets in the data folder for convenience. 
 
 
-You may want to do vanilla unlearning for Representation shift (ascent and snpo). please use grad_ascent.py and snpo_vanilla.py for this. Update config_2 in config.py
+You may want to do vanilla unlearning for Representation shift (ascent and snpo). please use grad_ascent.py and snpo_vanilla.py for this. Update ```Config_2``` in ```config.py```
+
+
+**Note**: If there are any errors! its mostly due to dependency. Please look into the requirement.txt. 
+
+
 
 
 

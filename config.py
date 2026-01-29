@@ -15,7 +15,7 @@ class Config_ft:
         self.num_epochs     = 10
         self.overwrite_dir  = True
         self.weight_decay   = 0.01
-        self.exp_type       = 'finetune'
+        self.ds_type       = 'finetune'
         self.model_name    = 'llama_8b'
         self.save_dir       = '/outputs/llama_ft' 
         self.max_length     = 512 
