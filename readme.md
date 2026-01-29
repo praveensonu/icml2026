@@ -82,5 +82,8 @@ accelerate launch --multi_gpu --num_processes 2 gd.py
 The code for **Coresets** selection is in the notebook, however reproducing that code requires extra steps (such as, semantic & syntactic calculation etc). Running the notebooks is not enough, it requires changes in the Config classes, calculating semantic and syntactic scores with sentence transformers model and edit distance etc. We already provide the selected coresets in the data folder for convenience. 
 
 
+You may want to do vanilla unlearning for Representation shift (ascent and snpo). please use grad_ascent.py and snpo_vanilla.py for this. Update config_2 in config.py
+
+
 
 
